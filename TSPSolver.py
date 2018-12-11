@@ -77,11 +77,49 @@ class TSPSolver:
 	'''
 
     def greedy(self, time_allowance=60.0):
-        # self._scenario.getCities
-        #
-        # for c in self._scenario.getCities:
-        #     for
-        pass
+        results = {}
+        cities = self._scenario.getCities()
+        ncities = len(cities)
+        bssf = None
+        count = 0
+
+        start_time = time.time()
+
+        route = [cities[0]]
+        currentCityIndex = 0
+
+        # while all of the cities aren't added to the route
+        while (len(route) < ncities) and (time.time() - start_time < time_allowance):
+            minIndex = 0
+            minValue = math.inf
+
+            # loop over all of the cities to find the best city to go to from there
+            for i in range(0, ncities):
+                # make sure it's not ourselves
+                if currentCityIndex != i:
+                    # make sure we haven't already been there
+                    if not route.__contains__(cities[i]):
+                        tempValue = cities[currentCityIndex].costTo(cities[i])
+
+                        if tempValue < minValue:
+                            minValue = tempValue
+                            minIndex = i
+
+            # add the city with the cheapest route from the current city
+            currentCityIndex = minIndex
+            route.append(cities[currentCityIndex])
+
+        bssf = TSPSolution(route)
+        end_time = time.time()
+
+        results['cost'] = bssf.cost
+        results['time'] = end_time - start_time
+        results['count'] = count
+        results['soln'] = bssf
+        results['max'] = None
+        results['total'] = None
+        results['pruned'] = None
+        return results
 
     ''' <summary>
 		This is the entry point for the branch-and-bound algorithm that you will implement
@@ -130,7 +168,7 @@ class TSPSolver:
 
                 # Hasn't been visited
                 if dist != np.inf and cities[i] not in node.route:
-                    #Create and fill in node
+                    # Create and fill in node
                     next_node = TSPNode(node.lower_bound, np.copy(node.m), node.route.copy(), node.cost)
                     next_node.addCityAndUpdateCost(cities[i])
                     next_node.reduceMatrix(node.city._index, next_node.city._index)
@@ -142,7 +180,7 @@ class TSPSolver:
                         if solution.cost < bssf.cost:
                             count += 1
                             bssf = solution
-                    else:   # if a solution hasn't been found yet
+                    else:  # if a solution hasn't been found yet
 
                         # should I prune
                         if next_node.lower_bound < bssf.cost:
