@@ -214,6 +214,10 @@ def get_neighborhood(solution):
 
 
 def features_match(solution_candidate, tabu_list):
+    for edge in tabu_list:
+        for solution_edge in solution_candidate.enumerateEdges():
+            if edge == solution_edge:
+                return true
     return false
 
 
@@ -223,7 +227,7 @@ def get_best_candidate(candidates):
     for candidate in candidates:
         if candidate.cost < min_cost:
             min_cost = candidate.cost
-            output_candidate candidate
+            output_candidate = candidate
     return output_candidate
 
 
