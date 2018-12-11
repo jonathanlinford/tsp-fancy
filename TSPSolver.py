@@ -14,6 +14,8 @@ import numpy as np
 from TSPClasses import *
 import heapq
 import itertools
+import random
+import copy
 
 
 class TSPSolver:
@@ -211,52 +213,49 @@ class TSPSolver:
     def fancy(self, time_allowance=60.0):
         results = {}
         cities = self._scenario.getCities()
-        ncities = len(cities)
-        foundTour = False
-        count = 0
-        bssf = self.defaultRandomTour(time_allowance=10.0)['soln']
-        pruned = 0
-        max_q_size = 0
-        num_states = 0
+        # TODO use greedy
+        bssf = self.greedy(time_allowance=10.0)['soln']
         start_time = time.time()
 
-        tabu_list = []
-        tabu_max_size = 50 # I chose an arbitrary size. We may want to tinker with this, and it may vary from scenario size to scenario size
+        tabu_max_size = 5
+        tabu_list = get_features(bssf, tabu_max_size)
+        neighborhood_size = 5
 
         while (time.time() - start_time < time_allowance):
-            candidates = []
-            for candidate in get_neighborhood(bssf):
-                if features_match(candidate, tabu_list):
-                    candidates.append(candidate)
-            current_candidate = get_best_candidate(candidates)
-            if current_candidate.cost() < bssf.cost:
+            current_candidate = get_best_neighbor(bssf, tabu_list, neighborhood_size)
+            if current_candidate.cost < bssf.cost:
                 prev_bssf = bssf
                 bssf = current_candidate
-                tabu_list = feature_difference(bssf, prev_bssf)
+                tabu_list = feature_difference(bssf, prev_bssf, tabu_max_size)
                 while len(tabu_list) > tabu_max_size:
                     tabu_list.pop()
 
         end_time = time.time()
         results['cost'] = bssf.cost
         results['time'] = end_time - start_time
-        results['count'] = count
         results['soln'] = bssf
-        results['max'] = max_q_size
-        results['total'] = num_states
-        results['pruned'] = pruned
         return results
 
 
-def get_neighborhood(solution):
-    pass
+def get_best_neighbor(solution, tabu_list, neighborhood_size):
+    neighborhood = []
+    while True and len(neighborhood) < neighborhood_size:
+        city1_index = random.randint(2, len(solution.enumerateEdges()) - 1)
+        city2_index = random.randint(2, len(solution.enumerateEdges()) - 1)
+        route_copy = copy.deepcopy(solution.getRoute())
+        route_copy[city1_index], route_copy[city2_index] = route_copy[city2_index], route_copy[city1_index]
+        new_solution = TSPSolution(route_copy)
+        if not features_match(new_solution, tabu_list):
+            neighborhood.append(new_solution)
+    return get_best_candidate(neighborhood)
 
 
 def features_match(solution_candidate, tabu_list):
     for edge in tabu_list:
         for solution_edge in solution_candidate.enumerateEdges():
             if edge == solution_edge:
-                return true
-    return false
+                return True
+    return False
 
 
 def get_best_candidate(candidates):
@@ -269,6 +268,15 @@ def get_best_candidate(candidates):
     return output_candidate
 
 
-def feature_difference(current_best_solution, previous_best_solution):
-    # should return a new feature list
-    pass
+def get_features(solution, size):
+    # print(str(solution is None))
+    # print(str(solution.enumerateEdges()))
+    sorted_edges = sorted(solution.enumerateEdges(), key=lambda x: x[2], reverse=True)
+    return sorted_edges[0:size]
+
+
+def feature_difference(current_best_solution, previous_best_solution, size):
+    current_features = set(get_features(current_best_solution, size))
+    previous_features = set(get_features(previous_best_solution, size))
+    new_features = current_features- previous_features
+    return new_features

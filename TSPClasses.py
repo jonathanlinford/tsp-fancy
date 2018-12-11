@@ -87,6 +87,9 @@ class TSPSolution:
         elist.append((self.route[-1], self.route[0], int(math.ceil(dist))))
         return elist
 
+    def getRoute(self):
+        return self.route
+
 
 def nameForInt(num):
     if num == 0:
