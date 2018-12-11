@@ -223,7 +223,7 @@ class TSPSolver:
 
         while (time.time() - start_time < time_allowance):
             current_candidate = get_best_neighbor(bssf, tabu_list, neighborhood_size)
-            if current_candidate.cost < bssf.cost:
+            if current_candidate is not None and current_candidate.cost < bssf.cost:
                 prev_bssf = bssf
                 bssf = current_candidate
                 tabu_list = feature_difference(bssf, prev_bssf, tabu_max_size)
@@ -234,6 +234,12 @@ class TSPSolver:
         results['cost'] = bssf.cost
         results['time'] = end_time - start_time
         results['soln'] = bssf
+
+
+        results['count'] = 0
+        results['max'] = 0
+        results['total'] = 0
+        results['pruned'] = 0
         return results
 
 
@@ -251,8 +257,12 @@ def get_best_neighbor(solution, tabu_list, neighborhood_size):
 
 
 def features_match(solution_candidate, tabu_list):
+    edges = solution_candidate.enumerateEdges()
+    if edges is None:
+        # None type on the edges list means the cost was np.inf
+        return False
     for edge in tabu_list:
-        for solution_edge in solution_candidate.enumerateEdges():
+        for solution_edge in edges:
             if edge == solution_edge:
                 return True
     return False
