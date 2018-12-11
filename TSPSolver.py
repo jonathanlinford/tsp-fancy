@@ -209,4 +209,62 @@ class TSPSolver:
 	'''
 
     def fancy(self, time_allowance=60.0):
-        pass
+        results = {}
+        cities = self._scenario.getCities()
+        ncities = len(cities)
+        foundTour = False
+        count = 0
+        bssf = self.defaultRandomTour(time_allowance=10.0)['soln']
+        pruned = 0
+        max_q_size = 0
+        num_states = 0
+        start_time = time.time()
+
+        tabu_list = []
+        tabu_max_size = 50 # I chose an arbitrary size. We may want to tinker with this, and it may vary from scenario size to scenario size
+
+        while (time.time() - start_time < time_allowance):
+            candidates = []
+            for candidate in get_neighborhood(bssf):
+                if features_match(candidate, tabu_list):
+                    candidates.append(candidate)
+            current_candidate = get_best_candidate(candidates)
+            if current_candidate.cost() < bssf.cost:
+                prev_bssf = bssf
+                bssf = current_candidate
+                tabu_list = feature_difference(bssf, prev_bssf)
+                while len(tabu_list) > tabu_max_size:
+                    tabu_list.pop()
+
+        end_time = time.time()
+        results['cost'] = bssf.cost
+        results['time'] = end_time - start_time
+        results['count'] = count
+        results['soln'] = bssf
+        results['max'] = max_q_size
+        results['total'] = num_states
+        results['pruned'] = pruned
+        return results
+
+
+def get_neighborhood(solution):
+    pass
+
+
+def features_match(solution_candidate, tabu_list):
+    return false
+
+
+def get_best_candidate(candidates):
+    min_cost = np.inf
+    output_candidate = None
+    for candidate in candidates:
+        if candidate.cost < min_cost:
+            min_cost = candidate.cost
+            output_candidate candidate
+    return output_candidate
+
+
+def feature_difference(current_best_solution, previous_best_solution):
+    # should return a new feature list
+    pass
