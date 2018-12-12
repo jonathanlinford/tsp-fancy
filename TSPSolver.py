@@ -113,7 +113,10 @@ class TSPSolver:
                 route.append(cities[currentCityIndex])
 
             newSolution = TSPSolution(route)
-            if bssf is None:
+            if newSolution.cost < math.inf:
+                bssf = newSolution
+                break
+            elif bssf is None:
                 bssf = newSolution
             elif newSolution.cost < bssf.cost:
                 bssf = newSolution
