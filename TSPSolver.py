@@ -87,31 +87,37 @@ class TSPSolver:
 
         start_time = time.time()
 
-        route = [cities[0]]
-        currentCityIndex = 0
+        for i in range(0, len(cities)):
+            route = [cities[i]]
+            currentCityIndex = i
 
-        # while all of the cities aren't added to the route
-        while (len(route) < ncities) and (time.time() - start_time < time_allowance):
-            minIndex = 0
-            minValue = math.inf
+            # while all of the cities aren't added to the route
+            while (len(route) < ncities) and (time.time() - start_time < time_allowance):
+                minIndex = 0
+                minValue = math.inf
 
-            # loop over all of the cities to find the best city to go to from there
-            for i in range(0, ncities):
-                # make sure it's not ourselves
-                if currentCityIndex != i:
-                    # make sure we haven't already been there
-                    if not route.__contains__(cities[i]):
-                        tempValue = cities[currentCityIndex].costTo(cities[i])
+                # loop over all of the cities to find the best city to go to from there
+                for i in range(0, ncities):
+                    # make sure it's not ourselves
+                    if currentCityIndex != i:
+                        # make sure we haven't already been there
+                        if not route.__contains__(cities[i]):
+                            tempValue = cities[currentCityIndex].costTo(cities[i])
 
-                        if tempValue < minValue:
-                            minValue = tempValue
-                            minIndex = i
+                            if tempValue < minValue:
+                                minValue = tempValue
+                                minIndex = i
 
-            # add the city with the cheapest route from the current city
-            currentCityIndex = minIndex
-            route.append(cities[currentCityIndex])
+                # add the city with the cheapest route from the current city
+                currentCityIndex = minIndex
+                route.append(cities[currentCityIndex])
 
-        bssf = TSPSolution(route)
+            newSolution = TSPSolution(route)
+            if bssf is None:
+                bssf = newSolution
+            elif newSolution.cost < bssf.cost:
+                bssf = newSolution
+
         end_time = time.time()
 
         results['cost'] = bssf.cost
