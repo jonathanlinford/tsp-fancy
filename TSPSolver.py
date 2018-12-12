@@ -235,7 +235,7 @@ class TSPSolver:
         tabu_list = get_features(bssf, tabu_max_size)
         neighborhood_size = 5
 
-        while (time.time() - start_time < time_allowance):
+        while (time.time() - start_time < time_allowance and len(tabu_list) != 0):
             current_candidate = get_best_neighbor(bssf, tabu_list, neighborhood_size)
             if current_candidate is not None and current_candidate.cost < bssf.cost:
                 prev_bssf = bssf
