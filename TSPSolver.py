@@ -112,14 +112,12 @@ class TSPSolver:
                 currentCityIndex = minIndex
                 route.append(cities[currentCityIndex])
 
-            newSolution = TSPSolution(route)
-            if newSolution.cost < math.inf:
-                bssf = newSolution
-                break
-            elif bssf is None:
-                bssf = newSolution
-            elif newSolution.cost < bssf.cost:
-                bssf = newSolution
+            if route[len(route) - 1].costTo(route[0]) < math.inf:
+                newSolution = TSPSolution(route)
+                if bssf is None:
+                    bssf = newSolution
+                elif newSolution.cost < bssf.cost:
+                    bssf = newSolution
 
         end_time = time.time()
 
