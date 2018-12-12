@@ -91,8 +91,10 @@ class TSPSolver:
             route = [cities[i]]
             currentCityIndex = i
 
+            invalidRoute = False
+
             # while all of the cities aren't added to the route
-            while (len(route) < ncities) and (time.time() - start_time < time_allowance):
+            while (len(route) < ncities) and not invalidRoute and (time.time() - start_time < time_allowance):
                 minIndex = 0
                 minValue = math.inf
 
@@ -109,15 +111,20 @@ class TSPSolver:
                                 minIndex = i
 
                 # add the city with the cheapest route from the current city
-                currentCityIndex = minIndex
-                route.append(cities[currentCityIndex])
+                if minValue == math.inf:
+                    invalidRoute = True
+                else:
+                    currentCityIndex = minIndex
+                    route.append(cities[currentCityIndex])
 
-            if route[len(route) - 1].costTo(route[0]) < math.inf:
-                newSolution = TSPSolution(route)
-                if bssf is None:
-                    bssf = newSolution
-                elif newSolution.cost < bssf.cost:
-                    bssf = newSolution
+            if not invalidRoute:
+                if route[len(route) - 1].costTo(route[0]) < math.inf:
+                    newSolution = TSPSolution(route)
+                    count += 1
+                    if bssf is None:
+                        bssf = newSolution
+                    elif newSolution.cost < bssf.cost:
+                        bssf = newSolution
 
         end_time = time.time()
 
