@@ -225,10 +225,20 @@ class TSPSolver:
 	'''
 
     def fancy(self, time_allowance=60.0):
+        """
+        Get best neighbor - O(n^2)
+        feature_difference - O(n log n)
+        repeated for a minute.
+        If the run bound was an iteration count c, then
+        the run time would be O(c*n^2) + cost of getting initial BSSF
+        :param time_allowance:
+        :return:
+        """
         results = {}
         cities = self._scenario.getCities()
         # TODO use greedy
-        bssf = self.greedy(time_allowance=10.0)['soln']
+        bssf = self.branchAndBound(time_allowance=60.0)['soln']
+        # bssf = self.greedy(time_allowance=10.0)['soln']
         start_time = time.time()
 
         tabu_max_size = 5
@@ -258,8 +268,19 @@ class TSPSolver:
 
 
 def get_best_neighbor(solution, tabu_list, neighborhood_size):
+    """
+    Calculates a neighborhood, then returns the best candidate in the neighborhood.
+    The complexity of this is somewhat hard to determine, since neighbors are being chosen randomly.
+    It is also assumed that at lest neighborhood_size neighbors will be found, otherwise this function will never terminate.
+    With the proper checks, this function could be bound to run in O(n^2) in the worst case (so that duplicate solutions
+    are not considered)
+    :param solution:
+    :param tabu_list:
+    :param neighborhood_size:
+    :return:
+    """
     neighborhood = []
-    while True and len(neighborhood) < neighborhood_size:
+    while len(neighborhood) < neighborhood_size:
         city1_index = random.randint(2, len(solution.enumerateEdges()) - 1)
         city2_index = random.randint(2, len(solution.enumerateEdges()) - 1)
         route_copy = copy.deepcopy(solution.getRoute())
@@ -271,6 +292,14 @@ def get_best_neighbor(solution, tabu_list, neighborhood_size):
 
 
 def features_match(solution_candidate, tabu_list):
+    """
+    Checks if the solution candidate contains any tabu edge.
+    The complexity of this function is O(nm) where n is the number of edges in a solution and m is the size of the
+    tabu list
+    :param solution_candidate:
+    :param tabu_list:
+    :return:
+    """
     edges = solution_candidate.enumerateEdges()
     if edges is None:
         # None type on the edges list means the cost was np.inf
@@ -283,6 +312,12 @@ def features_match(solution_candidate, tabu_list):
 
 
 def get_best_candidate(candidates):
+    """
+    Retrieves the best candidate from a list of candidates.
+    The complexity of this function is O(n) where n is the size of the candidates list
+    :param candidates:
+    :return:
+    """
     min_cost = np.inf
     output_candidate = None
     for candidate in candidates:
@@ -293,14 +328,28 @@ def get_best_candidate(candidates):
 
 
 def get_features(solution, size):
-    # print(str(solution is None))
-    # print(str(solution.enumerateEdges()))
+    """
+    Gets the first n largest edges from the given solution. The complexity of this function is n log n, the cost
+    of sorting the list of edges, where n is the number of edges in the solution, or the number of cities in the problem
+    :param solution:
+    :param size:
+    :return:
+    """
     sorted_edges = sorted(solution.enumerateEdges(), key=lambda x: x[2], reverse=True)
     return sorted_edges[0:size]
 
 
 def feature_difference(current_best_solution, previous_best_solution, size):
+    """
+    The complexity of this function is dependent on how expensive it is to construct sets from arrays in Python.
+    After the sets are constructed, the set subtraction has a time complexity of O(n), since inserts/deletes into
+    sets are O(1) and that will be done n times, where n is the size of the larger set.
+    :param current_best_solution:
+    :param previous_best_solution:
+    :param size:
+    :return:
+    """
     current_features = set(get_features(current_best_solution, size))
     previous_features = set(get_features(previous_best_solution, size))
-    new_features = current_features- previous_features
+    new_features = current_features - previous_features
     return new_features
